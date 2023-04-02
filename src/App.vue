@@ -75,6 +75,8 @@ function handleBotPlay() {
 	const randomMove = avaiableSlots[Math.floor(Math.random() * avaiableSlots.length)];
 	const bestMove = minimax(slots.value, xTurn.value).index;
 
+	return setTimeout(() => handlePlay(bestMove), 0);
+
 	const randomChance = Math.random() < 0.1;
 
 	setTimeout(() => handlePlay(randomChance ? randomMove : bestMove), 600);
