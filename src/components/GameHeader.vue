@@ -1,7 +1,7 @@
 <template>
 	<div class="grid grid-cols-3 gap-2">
 		<a
-			href="https://github.com/brunoomds"
+			href="https://github.com/Brunoomds/tictactoe"
 			target="_blank"
 			class="p-2 mr-auto hover:text-slate-200 transition-colors duration-300"
 		>
