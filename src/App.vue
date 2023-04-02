@@ -69,7 +69,7 @@
 			<p>isRoundOver: {{ isRoundOver }}</p>
 			<p>winnerSlots: {{ winnerSlots }}</p>
 			<p>xTurn: {{ xTurn }}</p>
-			<p>botMode: {{ botMode }}</p>
+			<p @click.prevent="botMode = !botMode">botMode: {{ botMode }}</p>
 			<p>botTurn: {{ isBotTurn }}</p>
 		</div>
 	</div>
@@ -84,13 +84,14 @@ import IconGithub from "@/components/icons/IconGithub.vue";
 import { computed } from "@vue/reactivity";
 
 const slots = ref(Array(9).fill(null));
-const xTurn = ref(true);
+const xTurn = ref(false);
+const toggleFirstMove = ref(true);
 const isRoundOver = ref(false);
 const botMode = ref(true);
-const isBotTurn = computed(() => botMode.value && !xTurn.value);
 const winnerSlots = ref([]);
 
 const scores = ref({ x: 0, o: 0 });
+
 const winCombinations = ref([
 	// VERTICALS
 	[0, 3, 6],
@@ -104,6 +105,8 @@ const winCombinations = ref([
 	[0, 4, 8],
 	[2, 4, 6],
 ]);
+
+const isBotTurn = computed(() => botMode.value && !xTurn.value);
 
 function userMove(index) {
 	if (slots.value[index] || isRoundOver.value || isBotTurn.value) return;
@@ -131,8 +134,10 @@ function handlePlay(index) {
 function clearBoard() {
 	slots.value.fill(null);
 	winnerSlots.value = [];
-	xTurn.value = true;
 	isRoundOver.value = false;
+
+	xTurn.value = toggleFirstMove.value;
+	toggleFirstMove.value = !toggleFirstMove.value;
 }
 
 function handleBotPlay() {
