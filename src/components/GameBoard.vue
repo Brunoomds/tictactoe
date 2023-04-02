@@ -4,7 +4,7 @@
 			v-for="(slot, index) in slots"
 			@click.prevent="$emit('userMove', index)"
 			class="bg-slate-800 w-full aspect-square flex justify-center items-center rounded transition-colors duration-300 sm:hover:bg-slate-700"
-			:class="{ 'pointer-events-none': slot || isRoundOver || isBotTurn }"
+			:class="{ 'pointer-events-none': slot || isRoundOver || !xTurn }"
 		>
 			<component
 				:is="slot"
@@ -24,8 +24,8 @@ const props = defineProps({
 		type: Array,
 		required: true,
 	},
+	xTurn: Boolean,
 	isRoundOver: Boolean,
-	isBotTurn: Boolean,
 	winnerSlots: Array,
 });
 </script>

@@ -3,7 +3,7 @@
 		<div class="w-full max-w-lg space-y-6">
 			<GameHeader v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @clear-board="clearBoard()" />
 
-			<GameBoard v-bind="{ slots, isRoundOver, winnerSlots, isBotTurn }" @user-move="userMove($event)" />
+			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @user-move="userMove($event)" />
 
 			<GameScore v-bind="{ scores }" />
 		</div>
@@ -14,7 +14,6 @@
 import { markRaw, ref, watchEffect } from "vue";
 import IconMarkX from "@/components/icons/IconMarkX.vue";
 import IconMarkO from "@/components/icons/IconMarkO.vue";
-import { computed } from "@vue/reactivity";
 import GameHeader from "./components/GameHeader.vue";
 import GameBoard from "./components/GameBoard.vue";
 import GameScore from "./components/GameScore.vue";
@@ -23,11 +22,8 @@ const slots = ref(Array(9).fill(null));
 const xTurn = ref(true);
 const toggleFirstMove = ref(!xTurn.value);
 const isRoundOver = ref(false);
-const botMode = ref(true);
 const winnerSlots = ref([]);
-
 const scores = ref({ x: 0, o: 0 });
-
 const winCombinations = ref([
 	// VERTICALS
 	[0, 3, 6],
@@ -42,10 +38,8 @@ const winCombinations = ref([
 	[2, 4, 6],
 ]);
 
-const isBotTurn = computed(() => botMode.value && !xTurn.value);
-
 function userMove(index) {
-	if (slots.value[index] || isRoundOver.value || isBotTurn.value) return;
+	if (slots.value[index] || isRoundOver.value || !xTurn.value) return;
 	handlePlay(index);
 }
 
@@ -82,9 +76,8 @@ function handleBotPlay() {
 	const bestMove = minimax(slots.value, xTurn.value).index;
 
 	const randomChance = Math.random() < 0.1;
-	if (randomChance) console.log("random move");
 
-	setTimeout(() => handlePlay(randomChance ? randomMove : bestMove), 0);
+	setTimeout(() => handlePlay(randomChance ? randomMove : bestMove), 600);
 }
 
 function minimax(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
@@ -123,6 +116,6 @@ function checkWinner(board, isMaximizing) {
 }
 
 watchEffect(() => {
-	if (isBotTurn.value && !isRoundOver.value) handleBotPlay();
+	if (!xTurn.value && !isRoundOver.value) handleBotPlay();
 });
 </script>
