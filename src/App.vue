@@ -3,7 +3,7 @@
 		<div class="w-full max-w-lg space-y-6">
 			<GameHeader v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @clear-board="clearBoard()" />
 
-			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @user-move="userMove($event)" />
+			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @handle-play="handlePlay($event)" />
 
 			<GameScore v-bind="{ scores }" />
 		</div>
@@ -24,6 +24,7 @@ const toggleFirstMove = ref(!xTurn.value);
 const isRoundOver = ref(false);
 const winnerSlots = ref([]);
 const scores = ref({ x: 0, o: 0 });
+
 const winCombinations = ref([
 	// VERTICALS
 	[0, 3, 6],
@@ -38,12 +39,9 @@ const winCombinations = ref([
 	[2, 4, 6],
 ]);
 
-function userMove(index) {
-	if (slots.value[index] || isRoundOver.value || !xTurn.value) return;
-	handlePlay(index);
-}
-
 function handlePlay(index) {
+	if (slots.value[index] || isRoundOver.value) return;
+
 	slots.value[index] = xTurn.value ? markRaw(IconMarkX) : markRaw(IconMarkO);
 
 	for (const [a, b, c] of winCombinations.value) {
@@ -75,7 +73,8 @@ function handleBotPlay() {
 	const randomMove = avaiableSlots[Math.floor(Math.random() * avaiableSlots.length)];
 	const bestMove = minimax(slots.value, xTurn.value).index;
 
-	return setTimeout(() => handlePlay(bestMove), 0);
+	// TODO: minimax algorithm delay when clearing board
+	// return setTimeout(() => handlePlay(bestMove), 0);
 
 	const randomChance = Math.random() < 0.1;
 
