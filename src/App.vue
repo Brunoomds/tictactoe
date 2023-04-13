@@ -74,6 +74,7 @@ function handleBotPlay() {
 	const bestMove = minimax(slots.value, xTurn.value).index;
 
 	// TODO: minimax algorithm delay when clearing board
+	// add a loading state to the board
 	// return setTimeout(() => handlePlay(bestMove), 0);
 
 	const randomChance = Math.random() < 0.1;
