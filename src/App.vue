@@ -1,6 +1,9 @@
 <template>
 	<div class="relative min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4">
-		<div class="w-full max-w-lg space-y-6">
+		<div
+			class="w-full max-w-lg space-y-6 transition-opacity duration-300"
+			:class="{ 'opacity-50 pointer-events-none': loadinBotPlay }"
+		>
 			<GameHeader v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @clear-board="clearBoard()" />
 
 			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @handle-play="handlePlay($event)" />
@@ -24,6 +27,7 @@ const toggleFirstMove = ref(!xTurn.value);
 const isRoundOver = ref(false);
 const winnerSlots = ref([]);
 const scores = ref({ x: 0, o: 0 });
+const loadinBotPlay = ref(false);
 
 const winCombinations = ref([
 	// VERTICALS
@@ -69,17 +73,13 @@ function clearBoard() {
 }
 
 function handleBotPlay() {
-	const avaiableSlots = slots.value.reduce((acc, slot, index) => (slot === null ? [...acc, index] : acc), []);
-	const randomMove = avaiableSlots[Math.floor(Math.random() * avaiableSlots.length)];
 	const bestMove = minimax(slots.value, xTurn.value).index;
+	loadinBotPlay.value = true;
 
-	// TODO: minimax algorithm delay when clearing board
-	// add a loading state to the board
-	// return setTimeout(() => handlePlay(bestMove), 0);
-
-	const randomChance = Math.random() < 0.1;
-
-	setTimeout(() => handlePlay(randomChance ? randomMove : bestMove), 600);
+	setTimeout(() => {
+		loadinBotPlay.value = false;
+		handlePlay(bestMove);
+	}, 600);
 }
 
 function minimax(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
