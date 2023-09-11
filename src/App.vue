@@ -17,9 +17,9 @@
 import { markRaw, ref, watchEffect } from "vue";
 import IconMarkX from "@/components/icons/IconMarkX.vue";
 import IconMarkO from "@/components/icons/IconMarkO.vue";
-import GameHeader from "./components/GameHeader.vue";
-import GameBoard from "./components/GameBoard.vue";
-import GameScore from "./components/GameScore.vue";
+import GameHeader from "@/components/GameHeader.vue";
+import GameBoard from "@/components/GameBoard.vue";
+import GameScore from "@/components/GameScore.vue";
 import { useGameStore } from "@/stores/game";
 
 const store = useGameStore();
@@ -31,32 +31,17 @@ const isRoundOver = ref(false);
 const winnerSlots = ref([]);
 const loadinBotPlay = ref(false);
 
-const winCombinations = ref([
-	// VERTICALS
-	[0, 3, 6],
-	[1, 4, 7],
-	[2, 5, 8],
-	// HORIZONTALS
-	[0, 1, 2],
-	[3, 4, 5],
-	[6, 7, 8],
-	// DIAGONALS
-	[0, 4, 8],
-	[2, 4, 6],
-]);
-
 function handlePlay(index) {
 	if (slots.value[index] || isRoundOver.value) return;
 
 	slots.value[index] = xTurn.value ? markRaw(IconMarkX) : markRaw(IconMarkO);
 
-	for (const [a, b, c] of winCombinations.value) {
+	for (const [a, b, c] of store.winCombinations) {
 		const hasWinner = slots.value[a] && slots.value[a] === slots.value[b] && slots.value[a] === slots.value[c];
-		if (hasWinner) {
-			store.setScore(xTurn.value);
-			winnerSlots.value.push(a, b, c);
-			return (isRoundOver.value = true);
-		}
+		if (!hasWinner) continue;
+		store.setScore(xTurn.value);
+		winnerSlots.value.push(a, b, c);
+		return (isRoundOver.value = true);
 	}
 
 	const isTie = slots.value.every((slot) => slot !== null);
@@ -116,7 +101,7 @@ function minimax(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
 
 function checkWinner(board, isMaximizing) {
 	const player = isMaximizing ? markRaw(IconMarkX) : markRaw(IconMarkO);
-	return winCombinations.value.some(([a, b, c]) => board[a] === player && board[b] === player && board[c] === player);
+	return store.winCombinations.some(([a, b, c]) => board[a] === player && board[b] === player && board[c] === player);
 }
 
 watchEffect(() => {
