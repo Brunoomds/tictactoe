@@ -13,6 +13,7 @@ import GameHeader from "@/components/GameHeader.vue";
 import GameBoard from "@/components/GameBoard.vue";
 import GameScore from "@/components/GameScore.vue";
 import { useGameStore } from "@/stores/game";
+import { onMounted } from "vue";
 
 const store = useGameStore();
 </script>

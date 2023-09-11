@@ -3,8 +3,11 @@
 		<button
 			v-for="(boardSlot, index) in store.boardSlots"
 			@click.prevent="store.handleMove(index)"
-			class="bg-slate-800 w-full aspect-square flex justify-center items-center rounded transition-colors duration-300 sm:hover:bg-slate-700"
-			:class="{ 'pointer-events-none': boardSlot || store.hasWinner }"
+			class="bg-slate-800 w-full aspect-square flex justify-center items-center rounded transition-all duration-300 sm:hover:bg-slate-700"
+			:class="[
+				{ 'pointer-events-none': boardSlot || store.hasWinner },
+				{ 'pointer-events-none opacity-50': store.loadingBotPlay },
+			]"
 		>
 			<component
 				:is="boardSlot"

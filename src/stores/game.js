@@ -34,17 +34,30 @@ export const useGameStore = defineStore("game", () => {
 	const isTie = computed(() => boardSlots.value.every((slot) => slot));
 
 	// ACTIONS
+	function resetBoard() {
+		boardSlots.value = Array(9).fill(null);
+
+		playerTurn.value = toggleFirstTurn.value;
+		toggleFirstTurn.value = !toggleFirstTurn.value;
+
+		if (!playerTurn.value) handleBotMove();
+	}
+
+	function switchTurn() {
+		playerTurn.value = !playerTurn.value;
+		if (!playerTurn.value) handleBotMove();
+	}
+
 	function handleMove(index) {
 		if (boardSlots.value[index] || hasWinner.value) return;
 
 		boardSlots.value.splice(index, 1, playerTurn.value ? markRaw(IconMarkX) : markRaw(IconMarkO));
 
-		if (hasWinner.value) setScore();
+		if (hasWinner.value) playerTurn.value ? scores.value.x++ : scores.value.o++;
 		if (!hasWinner.value && !isTie.value) switchTurn();
 	}
 
 	function handleBotMove() {
-		console.log("bot play");
 		loadingBotPlay.value = true;
 		const bestMove = getBestMove(boardSlots.value, playerTurn.value).index;
 
@@ -52,22 +65,6 @@ export const useGameStore = defineStore("game", () => {
 			loadingBotPlay.value = false;
 			handleMove(bestMove);
 		}, 600);
-	}
-
-	function resetBoard() {
-		boardSlots.value = Array(9).fill(null);
-
-		playerTurn.value = toggleFirstTurn.value;
-		toggleFirstTurn.value = !toggleFirstTurn.value;
-	}
-
-	function setScore() {
-		playerTurn.value ? scores.value.x++ : scores.value.o++;
-	}
-
-	function switchTurn() {
-		playerTurn.value = !playerTurn.value;
-		if (!playerTurn.value) handleBotMove();
 	}
 
 	function getBestMove(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
@@ -90,7 +87,8 @@ export const useGameStore = defineStore("game", () => {
 			if (isMaximizing && score > bestMove.score) {
 				bestMove = { index: slot, score };
 				alpha = Math.max(alpha, score);
-			} else if (!isMaximizing && score < bestMove.score) {
+			}
+			if (!isMaximizing && score < bestMove.score) {
 				bestMove = { index: slot, score };
 				beta = Math.min(beta, score);
 			}
@@ -102,5 +100,5 @@ export const useGameStore = defineStore("game", () => {
 	}
 
 	// EXPORT
-	return { boardSlots, playerTurn, hasWinner, isTie, scores, handleMove, resetBoard };
+	return { boardSlots, playerTurn, hasWinner, isTie, scores, loadingBotPlay, handleMove, resetBoard };
 });
