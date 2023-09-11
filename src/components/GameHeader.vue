@@ -14,7 +14,7 @@
 				class="flex justify-center items-center gap-2 animate-pulse-fast"
 			>
 				<component :is="store.hasWinner ? computedIcon : IconMarkX" class="w-4" />
-				<p v-text="resultString" class="text-white" />
+				<p v-text="store.hasWinner ? 'WINS!' : 'TIE!'" class="text-white" />
 				<component :is="store.hasWinner ? computedIcon : IconMarkO" class="w-4" />
 			</div>
 
@@ -47,10 +47,5 @@ const store = useGameStore();
 
 const computedIcon = computed(() => {
 	return store.playerTurn ? IconMarkX : IconMarkO;
-});
-
-const resultString = computed(() => {
-	if (store.hasWinner) return "WINS!";
-	if (store.isTie) return "TIE!";
 });
 </script>

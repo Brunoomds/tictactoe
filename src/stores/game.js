@@ -8,8 +8,10 @@ export const useGameStore = defineStore("game", () => {
 	const boardSlots = ref(Array(9).fill(null));
 	const playerTurn = ref(true);
 	const toggleFirstTurn = ref(!playerTurn.value);
+	const loadingBotPlay = ref(false);
 	const scores = ref({ x: 0, o: 0 });
-	const winCombinations = [
+
+	const winCombs = [
 		// VERTICALS
 		[0, 3, 6],
 		[1, 4, 7],
@@ -26,7 +28,7 @@ export const useGameStore = defineStore("game", () => {
 	// GETTERS
 	const hasWinner = computed(() => {
 		const board = boardSlots.value;
-		return winCombinations.find(([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+		return winCombs.find(([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
 	});
 
 	const isTie = computed(() => boardSlots.value.every((slot) => slot));
@@ -37,9 +39,19 @@ export const useGameStore = defineStore("game", () => {
 
 		boardSlots.value.splice(index, 1, playerTurn.value ? markRaw(IconMarkX) : markRaw(IconMarkO));
 
-		if (hasWinner.value) setScore(playerTurn.value);
+		if (hasWinner.value) setScore();
+		if (!hasWinner.value && !isTie.value) switchTurn();
+	}
 
-		if (!hasWinner.value && !isTie.value) playerTurn.value = !playerTurn.value;
+	function handleBotMove() {
+		console.log("bot play");
+		loadingBotPlay.value = true;
+		const bestMove = getBestMove(boardSlots.value, playerTurn.value).index;
+
+		setTimeout(() => {
+			loadingBotPlay.value = false;
+			handleMove(bestMove);
+		}, 600);
 	}
 
 	function resetBoard() {
@@ -51,6 +63,42 @@ export const useGameStore = defineStore("game", () => {
 
 	function setScore() {
 		playerTurn.value ? scores.value.x++ : scores.value.o++;
+	}
+
+	function switchTurn() {
+		playerTurn.value = !playerTurn.value;
+		if (!playerTurn.value) handleBotMove();
+	}
+
+	function getBestMove(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
+		const availableSlots = board.reduce((acc, slot, index) => (slot === null ? [...acc, index] : acc), []);
+
+		const hasWinner = winCombs.some(([a, b, c]) => board[a] && board[a] === board[b] && board[a] === board[c]);
+
+		if (hasWinner) return { score: isMaximizing ? -10 : +10 };
+		if (!availableSlots.length) return { score: 0 };
+
+		let bestMove = { score: isMaximizing ? -Infinity : Infinity };
+
+		for (const slot of availableSlots) {
+			board[slot] = isMaximizing ? markRaw(IconMarkX) : markRaw(IconMarkO);
+
+			const score = getBestMove(board, !isMaximizing, alpha, beta).score;
+
+			board[slot] = null;
+
+			if (isMaximizing && score > bestMove.score) {
+				bestMove = { index: slot, score };
+				alpha = Math.max(alpha, score);
+			} else if (!isMaximizing && score < bestMove.score) {
+				bestMove = { index: slot, score };
+				beta = Math.min(beta, score);
+			}
+
+			if (alpha >= beta) break;
+		}
+
+		return bestMove;
 	}
 
 	// EXPORT
