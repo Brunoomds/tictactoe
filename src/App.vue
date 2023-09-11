@@ -1,12 +1,11 @@
 <template>
 	<div class="relative min-h-screen bg-slate-900 flex flex-col justify-center items-center p-4">
-		<div
-			class="w-full max-w-lg space-y-6 transition-opacity duration-300"
-			:class="{ 'opacity-50 pointer-events-none': loadinBotPlay }"
-		>
-			<GameHeader v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @clear-board="clearBoard()" />
+		<div class="w-full max-w-lg space-y-6 transition-opacity duration-300">
+			<!-- :class="{ 'opacity-50 pointer-events-none': loadinBotPlay }" -->
 
-			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @handle-play="handlePlay($event)" />
+			<GameHeader />
+
+			<GameBoard />
 
 			<GameScore />
 		</div>
@@ -14,97 +13,10 @@
 </template>
 
 <script setup>
-import { markRaw, ref, watchEffect } from "vue";
-import IconMarkX from "@/components/icons/IconMarkX.vue";
-import IconMarkO from "@/components/icons/IconMarkO.vue";
 import GameHeader from "@/components/GameHeader.vue";
 import GameBoard from "@/components/GameBoard.vue";
 import GameScore from "@/components/GameScore.vue";
 import { useGameStore } from "@/stores/game";
 
 const store = useGameStore();
-
-const slots = ref(Array(9).fill(null));
-const xTurn = ref(true);
-const toggleFirstMove = ref(!xTurn.value);
-const isRoundOver = ref(false);
-const winnerSlots = ref([]);
-const loadinBotPlay = ref(false);
-
-function handlePlay(index) {
-	if (slots.value[index] || isRoundOver.value) return;
-
-	slots.value[index] = xTurn.value ? markRaw(IconMarkX) : markRaw(IconMarkO);
-
-	for (const [a, b, c] of store.winCombinations) {
-		const hasWinner = slots.value[a] && slots.value[a] === slots.value[b] && slots.value[a] === slots.value[c];
-		if (!hasWinner) continue;
-		store.setScore(xTurn.value);
-		winnerSlots.value.push(a, b, c);
-		return (isRoundOver.value = true);
-	}
-
-	const isTie = slots.value.every((slot) => slot !== null);
-	if (isTie) return (isRoundOver.value = true);
-
-	xTurn.value = !xTurn.value;
-}
-
-function clearBoard() {
-	slots.value.fill(null);
-	winnerSlots.value = [];
-	isRoundOver.value = false;
-
-	xTurn.value = toggleFirstMove.value;
-	toggleFirstMove.value = !toggleFirstMove.value;
-}
-
-function handleBotPlay() {
-	const bestMove = minimax(slots.value, xTurn.value).index;
-	loadinBotPlay.value = true;
-
-	setTimeout(() => {
-		loadinBotPlay.value = false;
-		handlePlay(bestMove);
-	}, 600);
-}
-
-function minimax(board, isMaximizing, alpha = -Infinity, beta = Infinity) {
-	const availableSlots = board.reduce((acc, slot, index) => (slot === null ? [...acc, index] : acc), []);
-
-	if (checkWinner(board, xTurn.value)) return { score: -10 };
-	if (checkWinner(board, !xTurn.value)) return { score: 10 };
-	if (availableSlots.length === 0) return { score: 0 };
-
-	let bestMove = { score: isMaximizing ? -Infinity : Infinity };
-
-	for (const slot of availableSlots) {
-		board[slot] = isMaximizing ? markRaw(IconMarkX) : markRaw(IconMarkO);
-
-		const { score } = minimax(board, !isMaximizing, alpha, beta);
-
-		board[slot] = null;
-
-		if (isMaximizing && score > bestMove.score) {
-			bestMove = { index: slot, score };
-			alpha = Math.max(alpha, score);
-		} else if (!isMaximizing && score < bestMove.score) {
-			bestMove = { index: slot, score };
-			beta = Math.min(beta, score);
-		}
-
-		if (alpha >= beta) break;
-	}
-
-	return bestMove;
-}
-
-function checkWinner(board, isMaximizing) {
-	const player = isMaximizing ? markRaw(IconMarkX) : markRaw(IconMarkO);
-	return store.winCombinations.some(([a, b, c]) => board[a] === player && board[b] === player && board[c] === player);
-}
-
-watchEffect(() => {
-	if (!xTurn.value && !isRoundOver.value) handleBotPlay();
-});
 </script>
