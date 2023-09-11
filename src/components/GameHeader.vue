@@ -9,21 +9,24 @@
 		</a>
 
 		<div class="bg-slate-800 py-2 px-4 rounded font-semibold">
-			<div v-if="isRoundOver" class="flex justify-center items-center gap-2 animate-pulse-fast">
-				<component :is="slots[winnerSlots[0]] || IconMarkX" class="w-4" />
-				<p v-text="winnerSlots.length ? 'WINS' : 'TIE'" class="text-white" />
-				<component :is="slots[winnerSlots[0]] || IconMarkO" class="w-4" />
+			<div
+				v-if="store.hasWinner || store.isTie"
+				class="flex justify-center items-center gap-2 animate-pulse-fast"
+			>
+				<component :is="store.hasWinner ? computedIcon : IconMarkX" class="w-4" />
+				<p v-text="store.hasWinner ? 'WINS!' : 'TIE!'" class="text-white" />
+				<component :is="store.hasWinner ? computedIcon : IconMarkO" class="w-4" />
 			</div>
 
 			<div v-else class="flex justify-center items-center gap-2">
-				<component :is="xTurn ? IconMarkX : IconMarkO" class="w-4" />
+				<component :is="store.playerTurn ? IconMarkX : IconMarkO" class="w-4" />
 				<p>TURN</p>
 			</div>
 		</div>
 
 		<div class="flex justify-end gap-2">
 			<button
-				@click.prevent="$emit('clearBoard')"
+				@click.prevent="store.resetBoard()"
 				class="bg-slate-800 aspect-square rounded hover:bg-slate-700 transition-colors duration-300"
 			>
 				<IconReload class="w-4 mx-auto" />
@@ -37,23 +40,12 @@ import IconReload from "@/components/icons/IconReload.vue";
 import IconGithub from "@/components/icons/IconGithub.vue";
 import IconMarkX from "@/components/icons/IconMarkX.vue";
 import IconMarkO from "@/components/icons/IconMarkO.vue";
+import { useGameStore } from "@/stores/game";
+import { computed } from "vue";
 
-const props = defineProps({
-	slots: {
-		type: Array,
-		required: true,
-	},
-	xTurn: {
-		type: Boolean,
-		required: true,
-	},
-	isRoundOver: {
-		type: Boolean,
-		required: true,
-	},
-	winnerSlots: {
-		type: Array,
-		required: true,
-	},
+const store = useGameStore();
+
+const computedIcon = computed(() => {
+	return store.playerTurn ? IconMarkX : IconMarkO;
 });
 </script>
