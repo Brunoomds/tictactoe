@@ -8,7 +8,7 @@
 
 			<GameBoard v-bind="{ slots, xTurn, isRoundOver, winnerSlots }" @handle-play="handlePlay($event)" />
 
-			<GameScore v-bind="{ scores }" />
+			<GameScore />
 		</div>
 	</div>
 </template>
@@ -20,13 +20,15 @@ import IconMarkO from "@/components/icons/IconMarkO.vue";
 import GameHeader from "./components/GameHeader.vue";
 import GameBoard from "./components/GameBoard.vue";
 import GameScore from "./components/GameScore.vue";
+import { useGameStore } from "@/stores/game";
+
+const store = useGameStore();
 
 const slots = ref(Array(9).fill(null));
 const xTurn = ref(true);
 const toggleFirstMove = ref(!xTurn.value);
 const isRoundOver = ref(false);
 const winnerSlots = ref([]);
-const scores = ref({ x: 0, o: 0 });
 const loadinBotPlay = ref(false);
 
 const winCombinations = ref([
@@ -51,7 +53,7 @@ function handlePlay(index) {
 	for (const [a, b, c] of winCombinations.value) {
 		const hasWinner = slots.value[a] && slots.value[a] === slots.value[b] && slots.value[a] === slots.value[c];
 		if (hasWinner) {
-			xTurn.value ? scores.value.x++ : scores.value.o++;
+			store.setScore(xTurn.value);
 			winnerSlots.value.push(a, b, c);
 			return (isRoundOver.value = true);
 		}
